@@ -1,5 +1,6 @@
 const _ = require('lodash');
 const express = require('express');
+const bodyParser = require('body-parser');
 const async = require('neo-async');
 const app = express();
 const MongoClient = require('mongodb').MongoClient;
@@ -9,6 +10,8 @@ const mongoConnect = (callback) => {
   MongoClient.connect(MONGO_URL, callback);
 };
 
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', 'http://52.193.135.71');
 console.log('set header');
@@ -16,7 +19,7 @@ console.log('set header');
 });
 
 app.get('/status', (req, res) => {
-  res.send('alive');
+  res.end('alive');
 });
 
 app.get('/todo/find', (req, res) => {
@@ -30,9 +33,7 @@ app.get('/todo/find', (req, res) => {
   ], (err, todos) => {
     if (err)
       return res.status(500).json(err);
-
     db.close();
-
     res.json(todos);
   });
 });
@@ -43,14 +44,14 @@ app.post('/todo/save', (req, res) => {
     (next) => { mongoConnect(next); },
     (_db, next) => {
       db = _db;
-      const todo = _.pick(req.params, ['_id', 'body']);
-      db.collection('todo').update(todo, {w: 1}, next);
+      const todo = _.pick(req.body, ['_id', 'body']);
+      db.collection('todo').save(todo, {w: 1}, next);
     }
   ], (err) => {
     if (err)
       return res.status(500).json(err);
     db.close();
-    res.ok();
+    res.end('success');
   });
 });
 
