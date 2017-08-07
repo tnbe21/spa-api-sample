@@ -9,8 +9,13 @@ const mongoConnect = (callback) => {
   MongoClient.connect(MONGO_URL, callback);
 };
 
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'http://52.193.135.71');
+  next();
+});
+
 app.get('/status', (req, res) => {
-  res.ok('alive');
+  res.send('alive');
 });
 
 app.get('/todo/find', (req, res) => {
